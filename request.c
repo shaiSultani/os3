@@ -152,7 +152,7 @@ void requestServeStatic(int fd, char *filename, int filesize)
 }
 
 // handle a request
-void requestHandle(int fd)
+void requestHandle(int fd, Headers headers)
 {
 
    int is_static;
