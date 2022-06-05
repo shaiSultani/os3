@@ -26,6 +26,7 @@ void getargs(int *port,int* threads_num, int* q_size, int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    srand(time(NULL));
     int listenfd, connfd, port, clientlen, queue_size, threads_num;
     struct sockaddr_in clientaddr;
 

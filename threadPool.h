@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include "task.h"
 #include "queue.h"
+#include "segel.h"
+
 
 typedef struct struct_thread_pool {
     int threads_num;

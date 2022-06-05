@@ -5,6 +5,7 @@
 #ifndef WEBSERVER_FILES_TASK_H
 #define WEBSERVER_FILES_TASK_H
 #include "request.h"
+#include "segel.h"
 
 typedef void (*Handle)(int);
 typedef int* HandleArgs;

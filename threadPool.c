@@ -2,8 +2,6 @@
 // Created by student on 6/4/22.
 //
 #include "threadPool.h"
-#include <stdlib.h>
-#include "segel.h"
 
 //args for thread_routine
 typedef struct struct_thread_args{
