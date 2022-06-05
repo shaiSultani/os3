@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         connfd = Accept(listenfd, (SA *) &clientaddr, (socklen_t *) &clientlen);
         int* handlerArgs = malloc(sizeof(int));
         *handlerArgs = connfd;
-        while (threadPool->handled_tasks_num==threads_num) { //thread pool is full
+        while (threadPool->handled_tasks_num +threadPool->waiting_tasks_num==threadPool->threads_num) { //thread pool is full
             pthread_cond_wait(&threadPool->taskFinished, &threadPool->mutex);
         }
         Task to_add = TaskInit(requestHandle, handlerArgs);

@@ -6,7 +6,7 @@
 #define WEBSERVER_FILES_QUEUE_H
 
 #include "task.h"
-typedef enum {QUE_EMPTY, QUE_FULL} errorType;
+typedef enum {QUE_EMPTY, QUE_FULL,QUE_OK} errorType;
 
 typedef struct struct_queue {
     int size;
@@ -17,7 +17,7 @@ typedef struct struct_queue {
 
 Queue createQueue(int size);
 errorType enqueue(Queue que, Task task);
-errorType dequeue(Queue que);
+Task dequeue(Queue que);
 
 
 

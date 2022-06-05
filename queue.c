@@ -26,11 +26,13 @@ errorType enqueue(Queue que, Task task){
     }
     que->tail++;
     que->tasks[que->tail]=task;
+    return QUE_OK;
 }
-errorType dequeue(Queue que){
+Task dequeue(Queue que){
     if(que->front == -1)
-        return QUE_EMPTY;
+        return NULL;
     que->front++;
     if(que->front > que->tail)
         que->front = que->tail = -1;
+    return que->tasks[que->tail];
 }
