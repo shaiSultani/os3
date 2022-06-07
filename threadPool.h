@@ -1,9 +1,16 @@
+//
+// Created by student on 6/4/22.
+//
+
 #ifndef WEBSERVER_FILES_THREADPOOL_H
 #define WEBSERVER_FILES_THREADPOOL_H
 
-#include "segel.h"
+#include <pthread.h>
+#include <stdbool.h>
 #include "task.h"
 #include "queue.h"
+#include "segel.h"
+
 
 typedef struct struct_thread_pool {
     int threads_num;

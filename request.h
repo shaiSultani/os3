@@ -1,7 +1,4 @@
-#ifndef WEBSERVER_FILES_REQUEST_H
-#define WEBSERVER_FILES_REQUEST_H
-
-#include "segel.h"
+#ifndef __REQUEST_H__
 
 //for part3
 //typedef struct struct_headers {
@@ -15,4 +12,4 @@
 
 void requestHandle(int fd);
 
-#endif //WEBSERVER_FILES_REQUEST_H
+#endif
