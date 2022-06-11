@@ -5,27 +5,30 @@
 #ifndef WEBSERVER_FILES_THREADPOOL_H
 #define WEBSERVER_FILES_THREADPOOL_H
 
-#include <pthread.h>
-#include <stdbool.h>
 #include "task.h"
-#include "queue.h"
+#include "list.h"
 #include "segel.h"
-
 
 typedef struct struct_thread_pool {
     int threads_num;
     pthread_t* threads; //array of threads
-    int queue_size; //given size of requests
-    Queue waiting_tasks;
-    Task* handled_tasks;
-    int waiting_tasks_num;
-    int handled_tasks_num;
+    int list_size; //given size of requests
+    List waiting_tasks;
+    List handled_tasks;
     pthread_mutex_t mutex;
-    pthread_cond_t qNotEmpty;
+    pthread_cond_t listNotEmpty;
     pthread_cond_t taskFinished;
 }* ThreadPool;
 
-ThreadPool ThreadPoolInit(int threads_number, int q_size);
-void ThreadPoolAddWaitingTask(ThreadPool threadPool, Task task);
+typedef enum struct_sched_alg {
+    Block = 0,
+    DropTail = 1,
+    DropRandom = 2,
+    DropHead = 3
+} SchedAlg;
+
+ThreadPool ThreadPoolInit(int threads_number, int list_size);
+void ThreadPoolAddTask(ThreadPool, Task, SchedAlg);
+bool ThreadIsFull(ThreadPool);
 
 #endif //WEBSERVER_FILES_THREADPOOL_H

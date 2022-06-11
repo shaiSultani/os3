@@ -1,5 +1,4 @@
 #include "segel.h"
-#include "request.h"
 #include "threadPool.h"
 
 // 
@@ -13,7 +12,7 @@
 //
 
 // HW3: Parse the new arguments too
-void getargs(int *port,int* threads_num, int* q_size, int argc, char *argv[])
+void getargs(int *port, int* threads_num, int* q_size, SchedAlg* sched_alg, int argc, char *argv[])
 {
     if (argc < 2) {
 	fprintf(stderr, "Usage: %s <port>\n", argv[0]);
@@ -22,6 +21,15 @@ void getargs(int *port,int* threads_num, int* q_size, int argc, char *argv[])
     *port = atoi(argv[1]);
     *threads_num = atoi(argv[2]);
     *q_size = atoi(argv[3]);
+    if (strcmp(argv[4], "block") == 0) {
+        *sched_alg = Block;
+    } else if (strcmp(argv[4], "dt") == 0) {
+        *sched_alg = DropTail;
+    } else if (strcmp(argv[4], "dh") == 0) {
+        *sched_alg = DropHead;
+    } else if (strcmp(argv[4], "random") == 0) {
+        *sched_alg = DropRandom;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -29,24 +37,20 @@ int main(int argc, char *argv[])
     srand(time(NULL));
     int listenfd, connfd, port, clientlen, queue_size, threads_num;
     struct sockaddr_in clientaddr;
-
-    getargs(&port, &threads_num, &queue_size, argc, argv);
+    SchedAlg schedAlg;
+    getargs(&port, &threads_num, &queue_size, &schedAlg, argc, argv);
     ThreadPool threadPool = ThreadPoolInit(threads_num, queue_size);
-
-    // 
-    // HW3: Create some threads...
-    //
     listenfd = Open_listenfd(port);
     while (1) {
         clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *) &clientaddr, (socklen_t *) &clientlen);
         int* handlerArgs = malloc(sizeof(int));
         *handlerArgs = connfd;
-        while (threadPool->handled_tasks_num +threadPool->waiting_tasks_num==threadPool->threads_num) { //thread pool is full
+        while (ThreadIsFull(threadPool) && schedAlg == Block) { //thread threadPool is full
             pthread_cond_wait(&threadPool->taskFinished, &threadPool->mutex);
         }
         Task to_add = TaskInit(requestHandle, handlerArgs);
-        ThreadPoolAddWaitingTask(threadPool,to_add);
+        ThreadPoolAddTask(threadPool, to_add, schedAlg);
     }
 }
 

@@ -1,4 +1,4 @@
-/*
+ /*
  * client.c: A very, very primitive HTTP client.
  * 
  * To run, try: 
@@ -15,7 +15,7 @@
  *
  * You may also want to be able to request different URIs; 
  * you may want to get more URIs from the command line 
- * or read the list from a file. 
+ * or read the List from a file.
  *
  * When we test your server, we will be using modifications to this client.
  *
