@@ -3,7 +3,7 @@
 #include "request.h"
 #include "segel.h"
 
-typedef void (*Handle)(int);
+typedef void (*Handle)(int, Headers, int*, int*);
 typedef int* HandleArgs;
 typedef struct struct_task{
     Handle handler;

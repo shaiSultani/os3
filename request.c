@@ -5,7 +5,7 @@
 #include "segel.h"
 #include "request.h"
 
-void InsertHeaders(char* buf, Headers headers) {
+void insertHeaders(char* buf, Headers headers) {
     sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf, headers.stat_req_arrival.tv_sec, headers.stat_req_arrival.tv_usec);
     sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, headers.stat_req_dispatch.tv_sec, headers.stat_req_dispatch.tv_usec);
     sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, headers.stat_thread_id);
@@ -36,7 +36,7 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
     printf("%s", buf);
 
     sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
-    InsertHeaders(buf, headers);
+    insertHeaders(buf, headers);
     Rio_writen(fd, buf, strlen(buf));
     printf("%s", buf);
 
@@ -119,7 +119,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, Headers headers)
     // The CGI script has to finish writing out the header.
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
     sprintf(buf, "%sServer: OS-HW3 Web Server\r\n", buf);
-    InsertHeaders(buf, headers);
+    insertHeaders(buf, headers);
 
     Rio_writen(fd, buf, strlen(buf));
 
@@ -153,7 +153,7 @@ void requestServeStatic(int fd, char *filename, int filesize, Headers headers)
     sprintf(buf, "%sServer: OS-HW3 Web Server\r\n", buf);
     sprintf(buf, "%sContent-Length: %d\r\n", buf, filesize);
     sprintf(buf, "%sContent-Type: %s\r\n", buf, filetype);
-    InsertHeaders(buf, headers);
+    insertHeaders(buf, headers);
 
 
     Rio_writen(fd, buf, strlen(buf));

@@ -27,7 +27,7 @@ typedef enum struct_sched_alg {
     DropHead = 3
 } SchedAlg;
 
-ThreadPool ThreadPoolInit(int threads_number, int list_size);
+ThreadPool ThreadPoolInit(int threads_number, int l_size);
 void ThreadPoolAddTask(ThreadPool, Task, SchedAlg);
 bool ThreadIsFull(ThreadPool);
 

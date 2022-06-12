@@ -1,11 +1,9 @@
-//
-// Created by student on 6/4/22.
-//
 #include "task.h"
 
 Task TaskInit(Handle handler, HandleArgs args){
     Task task = malloc(sizeof(*task));
     task->handler= handler;
+    gettimeofday(&task->headers.stat_req_arrival, NULL);
     task->args=args;
     return task;
 }
