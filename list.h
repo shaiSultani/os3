@@ -26,7 +26,8 @@ List createList(int limit);
 list_size addToList(List, Task*);
 list_size listSize(List);
 Task* removeTail(List list);
-Task* removeHead(List list);
-list_size removeRand(List);
+Task removeHead(List list);
+void removeRand(List);
+int getCurrSize(List list);
 
 #endif //WEBSERVER_FILES_LIST_H

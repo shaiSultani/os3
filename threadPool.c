@@ -14,16 +14,13 @@ void* thread_routine(void* args) {
     int dynamic_requests_counter = 0;
     while(1) {
         pthread_mutex_lock(&threadPool->mutex);
-        while(listSize(threadPool->handled_tasks) == LIST_EMPTY
-                && listSize(threadPool->waiting_tasks) == LIST_EMPTY) {
+        while(listSize(threadPool->waiting_tasks) == LIST_EMPTY) {
             pthread_cond_wait(&threadPool->listNotEmpty, &threadPool->mutex);
         }
-        Task* curr_task = removeHead(threadPool->handled_tasks);
-        if (listSize(threadPool->waiting_tasks) == LIST_OK){
-            addToList(threadPool->handled_tasks, removeHead(threadPool->waiting_tasks));
-        }
+        Task curr_task = removeHead(threadPool->waiting_tasks);
+        addToList(threadPool->handled_tasks, &curr_task);
         pthread_mutex_unlock(&threadPool->mutex);
-        struct timeval arrival = (*curr_task)->headers.stat_req_arrival;
+        struct timeval arrival = curr_task->headers.stat_req_arrival;
         struct timeval diff;
         gettimeofday(&diff, NULL);
         if(diff.tv_usec < arrival.tv_usec) {
@@ -38,15 +35,15 @@ void* thread_routine(void* args) {
         }
         diff.tv_sec = diff.tv_sec - arrival.tv_sec;
         diff.tv_usec = diff.tv_usec - arrival.tv_usec;
-        (*curr_task)->headers.stat_thread_id = threadID;
-        (*curr_task)->headers.stat_req_dispatch = diff;
-        (*curr_task)->headers.stat_thread_count = threadPool->handled_tasks->size;
-        (*curr_task)->headers.stat_thread_static = static_requests_counter;
-        (*curr_task)->headers.stat_thread_dynamic = dynamic_requests_counter;
-        pthread_mutex_unlock(&threadPool->mutex);
-        (*curr_task)->handler(*(*curr_task)->args, (*curr_task)->headers, &static_requests_counter, &dynamic_requests_counter);
-        Close(*(*curr_task)->args);
+        curr_task->headers.stat_thread_id = threadID;
+        curr_task->headers.stat_req_dispatch = diff;
+        curr_task->headers.stat_thread_count = threadPool->handled_tasks->size;
+        curr_task->headers.stat_thread_static = static_requests_counter;
+        curr_task->headers.stat_thread_dynamic = dynamic_requests_counter;
+        curr_task->handler(*curr_task->args, curr_task->headers, &static_requests_counter, &dynamic_requests_counter);
+        Close(*(curr_task->args));
         pthread_mutex_lock(&threadPool->mutex);
+        removeHead(threadPool->handled_tasks);
         pthread_cond_signal(&threadPool->taskFinished);
         pthread_mutex_unlock(&threadPool->mutex);
     }
@@ -54,17 +51,14 @@ void* thread_routine(void* args) {
 
 void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
     pthread_mutex_lock(&threadPool->mutex);
-    if (threadPool->waiting_tasks->limit == 0){
-        if (listSize(threadPool->handled_tasks) == LIST_FULL){
-            pthread_mutex_unlock(&threadPool->mutex);
-            return;
-        }
-    }
     if(ThreadIsFull(threadPool)){
         if (schedAlg == DropHead) {
+            if (listSize((threadPool->waiting_tasks)) == LIST_EMPTY){
+                Close(*(task->args));
+                pthread_mutex_unlock(&threadPool->mutex);
+                return;
+            }
             removeHead(threadPool->waiting_tasks);
-            pthread_mutex_unlock(&threadPool->mutex);
-            return;
         }
         if (schedAlg == DropTail) {
             Close(*(task->args));
@@ -72,17 +66,15 @@ void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
             return;
         }
         if (schedAlg == DropRandom){
+            if (listSize((threadPool->waiting_tasks)) == LIST_EMPTY){
+                Close(*(task->args));
+                pthread_mutex_unlock(&threadPool->mutex);
+                return;
+            }
             removeRand(threadPool->waiting_tasks);
-            pthread_mutex_unlock(&threadPool->mutex);
         }
     }
-    if (listSize(threadPool->handled_tasks) == LIST_OK
-        || listSize(threadPool->handled_tasks) == LIST_EMPTY){
-        addToList(threadPool->handled_tasks, &task);
-    }
-    else{
-        addToList(threadPool->waiting_tasks, &task);
-    }
+    addToList(threadPool->waiting_tasks, &task);
     pthread_cond_signal(&threadPool->listNotEmpty);
     pthread_mutex_unlock(&threadPool->mutex);
 }
@@ -92,8 +84,8 @@ ThreadPool ThreadPoolInit(int threads_number, int l_size) {
     threadPool->threads_num = threads_number;
     threadPool->list_size = l_size;
     threadPool->threads = malloc((sizeof(pthread_t))*threads_number);
-    threadPool->waiting_tasks = malloc((sizeof(struct struct_task))*(l_size - threads_number));
-    threadPool->waiting_tasks = createList(l_size - threads_number);
+    threadPool->waiting_tasks = malloc((sizeof(struct struct_task))*(l_size));
+    threadPool->waiting_tasks = createList(l_size);
     threadPool->handled_tasks = malloc((sizeof(struct struct_task))*threads_number);
     threadPool->handled_tasks = createList(threads_number);
     pthread_mutex_init(&threadPool->mutex,NULL);
@@ -111,5 +103,5 @@ ThreadPool ThreadPoolInit(int threads_number, int l_size) {
 }
 
 bool ThreadIsFull(ThreadPool threadPool) {
-    return (listSize(threadPool->waiting_tasks) == LIST_FULL);
+    return (getCurrSize(threadPool->waiting_tasks) + getCurrSize(threadPool->handled_tasks) >= threadPool->list_size);
 }

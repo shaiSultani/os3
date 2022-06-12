@@ -48,10 +48,10 @@ Task* removeTail(List list){
     return target;
 }
 
-Task* removeHead(List list) {
-    Task* target = list->head->next->task;
+Task removeHead(List list) {
+    Task target = *(list->head->next->task);
     if (list->size == 1){
-        list->tail == NULL;
+        list->tail = NULL;
         list->head->next = NULL;
     }
     else{
@@ -62,20 +62,17 @@ Task* removeHead(List list) {
     return target;
 }
 
-list_size removeRand(List list ){
-    int target_size;
-    for (int i=0 ; ceil(list->size/10*3) ; i++){
+void removeRand(List list ) {
+    for (int i = 0; ceil(list->size / 10 * 3); i++) {
         int j = 1;
         int rand_task = rand() % list->size;
-        if (rand_task == 0 || rand_task == 1){
+        if (rand_task == 0 || rand_task == 1) {
             removeHead(list);
-        }
-        else if (rand_task == list->size -1){
+        } else if (rand_task == list->size - 1) {
             removeTail(list);
-        }
-        else{
-            list_node* current = list->head;
-            while (j<rand_task){
+        } else {
+            list_node *current = list->head;
+            while (j < rand_task) {
                 current = current->next;
                 j++;
             }
@@ -89,4 +86,8 @@ list_size listSize(List list) {
     if (list->size == 0) return LIST_EMPTY;
     if (list->size == list->limit) return LIST_FULL;
     else return LIST_OK;
+}
+
+int getCurrSize(List list){
+    return list->size;
 }
