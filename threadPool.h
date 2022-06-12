@@ -14,7 +14,7 @@ typedef struct struct_thread_pool {
     pthread_t* threads; //array of threads
     int list_size; //given size of requests
     List waiting_tasks;
-    List handled_tasks;
+    int handled_tasks_num;
     pthread_mutex_t mutex;
     pthread_cond_t listNotEmpty;
     pthread_cond_t taskFinished;

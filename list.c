@@ -14,7 +14,7 @@ List createList(int limit){
     return list;
 }
 
-list_size addToList(List list, Task* task) {
+list_size addToList(List list, Task task) {
     if (list->size == list->limit){
         return LIST_FULL;
     }
@@ -34,8 +34,8 @@ list_size addToList(List list, Task* task) {
     return LIST_OK;
 }
 
-Task* removeTail(List list){
-    Task* target = list->tail->task;
+Task removeTail(List list){
+    Task target = list->tail->task;
     if (list->size == 1){
         list->tail = NULL;
         list->head->next = NULL;
@@ -49,14 +49,14 @@ Task* removeTail(List list){
 }
 
 Task removeHead(List list) {
-    Task target = *(list->head->next->task);
+    Task target = list->head->next->task;
     if (list->size == 1){
         list->tail = NULL;
         list->head->next = NULL;
     }
     else{
+        list->head->next->next->prev = list->head;
         list->head->next = list->head->next->next;
-        list->head->next->prev = list->head;
     }
     list->size--;
     return target;
@@ -68,16 +68,19 @@ void removeRand(List list ) {
         int rand_task = rand() % list->size;
         if (rand_task == 0 || rand_task == 1) {
             removeHead(list);
-        } else if (rand_task == list->size - 1) {
-            removeTail(list);
         } else {
             list_node *current = list->head;
             while (j < rand_task) {
                 current = current->next;
                 j++;
             }
-            current->prev->next = current->next;
-            current->next->prev = current->next;
+            if (current->next){
+                current->prev->next = current->next;
+                current->next->prev = current->prev;
+            }
+            else{
+                current->prev->next = NULL;
+            }
         }
     }
 }

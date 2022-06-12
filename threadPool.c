@@ -18,7 +18,7 @@ void* thread_routine(void* args) {
             pthread_cond_wait(&threadPool->listNotEmpty, &threadPool->mutex);
         }
         Task curr_task = removeHead(threadPool->waiting_tasks);
-        addToList(threadPool->handled_tasks, &curr_task);
+        threadPool->handled_tasks_num++;
         pthread_mutex_unlock(&threadPool->mutex);
         struct timeval arrival = curr_task->headers.stat_req_arrival;
         struct timeval diff;
@@ -37,13 +37,13 @@ void* thread_routine(void* args) {
         diff.tv_usec = diff.tv_usec - arrival.tv_usec;
         curr_task->headers.stat_thread_id = threadID;
         curr_task->headers.stat_req_dispatch = diff;
-        curr_task->headers.stat_thread_count = threadPool->handled_tasks->size;
+        curr_task->headers.stat_thread_count = threadPool->handled_tasks_num;
         curr_task->headers.stat_thread_static = static_requests_counter;
         curr_task->headers.stat_thread_dynamic = dynamic_requests_counter;
         curr_task->handler(*curr_task->args, curr_task->headers, &static_requests_counter, &dynamic_requests_counter);
         Close(*(curr_task->args));
         pthread_mutex_lock(&threadPool->mutex);
-        removeHead(threadPool->handled_tasks);
+        threadPool->handled_tasks_num--;
         pthread_cond_signal(&threadPool->taskFinished);
         pthread_mutex_unlock(&threadPool->mutex);
     }
@@ -74,8 +74,10 @@ void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
             removeRand(threadPool->waiting_tasks);
         }
     }
-    addToList(threadPool->waiting_tasks, &task);
-    pthread_cond_signal(&threadPool->listNotEmpty);
+    addToList(threadPool->waiting_tasks, task);
+    if (threadPool->waiting_tasks->size == 1){
+        pthread_cond_signal(&threadPool->listNotEmpty);
+    }
     pthread_mutex_unlock(&threadPool->mutex);
 }
 
@@ -86,8 +88,7 @@ ThreadPool ThreadPoolInit(int threads_number, int l_size) {
     threadPool->threads = malloc((sizeof(pthread_t))*threads_number);
     threadPool->waiting_tasks = malloc((sizeof(struct struct_task))*(l_size));
     threadPool->waiting_tasks = createList(l_size);
-    threadPool->handled_tasks = malloc((sizeof(struct struct_task))*threads_number);
-    threadPool->handled_tasks = createList(threads_number);
+    threadPool->handled_tasks_num = 0;
     pthread_mutex_init(&threadPool->mutex,NULL);
     pthread_cond_init(&(threadPool->listNotEmpty), NULL);
     pthread_cond_init(&(threadPool->taskFinished), NULL);
@@ -103,5 +104,5 @@ ThreadPool ThreadPoolInit(int threads_number, int l_size) {
 }
 
 bool ThreadIsFull(ThreadPool threadPool) {
-    return (getCurrSize(threadPool->waiting_tasks) + getCurrSize(threadPool->handled_tasks) >= threadPool->list_size);
+    return (getCurrSize(threadPool->waiting_tasks) + threadPool->handled_tasks_num >= threadPool->list_size);
 }
