@@ -25,7 +25,6 @@ typedef struct list_t {
 List createList(int limit);
 list_size addToList(List, Task);
 list_size listSize(List);
-Task removeTail(List list);
 Task removeHead(List list);
 void removeRand(List);
 int getCurrSize(List list);

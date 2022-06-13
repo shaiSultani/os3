@@ -46,6 +46,7 @@ void* thread_routine(void* args) {
         threadPool->handled_tasks_num--;
         pthread_cond_signal(&threadPool->taskFinished);
         pthread_mutex_unlock(&threadPool->mutex);
+        printf("handled %d\n", threadPool->handled_tasks_num);
     }
 }
 
@@ -60,12 +61,12 @@ void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
             }
             removeHead(threadPool->waiting_tasks);
         }
-        if (schedAlg == DropTail) {
+        else if (schedAlg == DropTail) {
             Close(*(task->args));
             pthread_mutex_unlock(&threadPool->mutex);
             return;
         }
-        if (schedAlg == DropRandom){
+        else if (schedAlg == DropRandom){
             if (listSize((threadPool->waiting_tasks)) == LIST_EMPTY){
                 Close(*(task->args));
                 pthread_mutex_unlock(&threadPool->mutex);
@@ -79,6 +80,7 @@ void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
         pthread_cond_signal(&threadPool->listNotEmpty);
     }
     pthread_mutex_unlock(&threadPool->mutex);
+    printf("waiting %d\n", threadPool->waiting_tasks->size);
 }
 
 ThreadPool ThreadPoolInit(int threads_number, int l_size) {

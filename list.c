@@ -34,20 +34,6 @@ list_size addToList(List list, Task task) {
     return LIST_OK;
 }
 
-Task removeTail(List list){
-    Task target = list->tail->task;
-    if (list->size == 1){
-        list->tail = NULL;
-        list->head->next = NULL;
-    }
-    else{
-        list->tail = list->tail->prev;
-        list->tail->next = NULL;
-    }
-    list->size--;
-    return target;
-}
-
 Task removeHead(List list) {
     Task target = list->head->next->task;
     if (list->size == 1){
@@ -62,8 +48,9 @@ Task removeHead(List list) {
     return target;
 }
 
-void removeRand(List list ) {
+void removeRand(List list) {
     for (int i = 0; ceil(list->size / 10 * 3); i++) {
+        if (list->size == 0) return;
         int j = 1;
         int rand_task = rand() % list->size;
         if (rand_task == 0 || rand_task == 1) {
@@ -81,6 +68,7 @@ void removeRand(List list ) {
             else{
                 current->prev->next = NULL;
             }
+            list->size--;
         }
     }
 }
