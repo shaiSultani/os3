@@ -37,7 +37,7 @@ void* thread_routine(void* args) {
         diff.tv_usec = diff.tv_usec - arrival.tv_usec;
         curr_task->headers.stat_thread_id = threadID;
         curr_task->headers.stat_req_dispatch = diff;
-        curr_task->headers.stat_thread_count = threadPool->handled_tasks_num;
+        curr_task->headers.stat_thread_count = static_requests_counter + dynamic_requests_counter;
         curr_task->headers.stat_thread_static = static_requests_counter;
         curr_task->headers.stat_thread_dynamic = dynamic_requests_counter;
         curr_task->handler(*curr_task->args, curr_task->headers, &static_requests_counter, &dynamic_requests_counter);

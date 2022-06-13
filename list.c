@@ -15,12 +15,9 @@ List createList(int limit){
 }
 
 list_size addToList(List list, Task task) {
-    if (list->size == list->limit){
-        return LIST_FULL;
-    }
     list_node *new_node = malloc(sizeof(list_node));
     new_node->task = task;
-    if(!list->size){
+    if(list->size == 0){
         new_node->prev = list->head;
         list->head->next = new_node;
     }

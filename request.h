@@ -1,5 +1,5 @@
 #ifndef __REQUEST_H__
-#include <sys/time.h>
+#include "segel.h"
 
 typedef struct struct_headers {
     struct timeval stat_req_dispatch;
