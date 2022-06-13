@@ -41,7 +41,9 @@ int main(int argc, char *argv[])
     getargs(&port, &threads_num, &queue_size, &schedAlg, argc, argv);
     ThreadPool threadPool = ThreadPoolInit(threads_num, queue_size);
     listenfd = Open_listenfd(port);
+    int i;
     while (1) {
+        //printf("request %d\n", i++);
         clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *) &clientaddr, (socklen_t *) &clientlen);
         int* handlerArgs = malloc(sizeof(int));

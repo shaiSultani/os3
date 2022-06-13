@@ -54,6 +54,7 @@ void removeRand(List list) {
         int j = 1;
         int rand_task = rand() % list->size;
         if (rand_task == 0 || rand_task == 1) {
+            Close(*list->head->next->task->args);
             removeHead(list);
         } else {
             list_node *current = list->head;
@@ -61,6 +62,7 @@ void removeRand(List list) {
                 current = current->next;
                 j++;
             }
+            Close(*current->task->args);
             if (current->next){
                 current->prev->next = current->next;
                 current->next->prev = current->prev;
