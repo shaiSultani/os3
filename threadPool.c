@@ -51,7 +51,8 @@ void* thread_routine(void* args) {
         Close(*(curr_task->args));
         pthread_mutex_lock(&threadPool->mutex);
         threadPool->handled_tasks_num--;
-        pthread_cond_signal(&threadPool->taskFinished);
+        if(threadPool->handled_tasks_num + threadPool->waiting_tasks->size == threadPool->list_size -1)
+            pthread_cond_signal(&threadPool->taskFinished);
         pthread_mutex_unlock(&threadPool->mutex);
     }
 }
