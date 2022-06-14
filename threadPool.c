@@ -7,6 +7,7 @@ typedef struct struct_thread_args{
 } *ThreadArgs;
 
 void* thread_routine(void* args) {
+    //printf("fgdfgfd");
     ThreadArgs thread_args = (ThreadArgs)args;
     ThreadPool threadPool = thread_args->thread_pool;
     int threadID = thread_args->thread_id;
@@ -25,24 +26,28 @@ void* thread_routine(void* args) {
         struct timeval arrival = curr_task->headers.stat_req_arrival;
         struct timeval diff;
         gettimeofday(&diff, NULL);
-        if(diff.tv_usec < arrival.tv_usec) {
-            int nanoSec = (arrival.tv_usec - diff.tv_usec) / 1000000 + 1;
-            arrival.tv_usec -= 1000000 * nanoSec;
-            arrival.tv_sec += nanoSec;
-        }
-        if (diff.tv_usec - arrival.tv_usec > 1000000) {
-            int nanoSec = (diff.tv_usec - arrival.tv_usec) / 1000000;
-            arrival.tv_usec += 1000000 * nanoSec;
-            arrival.tv_sec -= nanoSec;
-        }
-        diff.tv_sec = diff.tv_sec - arrival.tv_sec;
-        diff.tv_usec = diff.tv_usec - arrival.tv_usec;
+//        if(diff.tv_usec < arrival.tv_usec) {
+//            int nanoSec = (arrival.tv_usec - diff.tv_usec) / 1000000 + 1;
+//            arrival.tv_usec -= 1000000 * nanoSec;
+//            arrival.tv_sec += nanoSec;
+//        }
+//        if (diff.tv_usec - arrival.tv_usec > 1000000) {
+//            int nanoSec = (diff.tv_usec - arrival.tv_usec) / 1000000;
+//            arrival.tv_usec += 1000000 * nanoSec;
+//            arrival.tv_sec -= nanoSec;
+//        }
+        timersub(&diff, &arrival, &curr_task->headers.stat_req_dispatch);
+        //diff.tv_sec = diff.tv_sec - arrival.tv_sec;
+        //diff.tv_usec = diff.tv_usec - arrival.tv_usec;
         curr_task->headers.stat_thread_id = threadID;
-        curr_task->headers.stat_req_dispatch = diff;
+        //curr_task->headers.stat_req_dispatch = diff;
         curr_task->headers.stat_thread_count = counter;
         curr_task->headers.stat_thread_static = static_requests_counter;
         curr_task->headers.stat_thread_dynamic = dynamic_requests_counter;
-        curr_task->handler(*curr_task->args, curr_task->headers, &static_requests_counter, &dynamic_requests_counter);
+        //printf("now running thread %d\n", (int)pthread_self());
+        requestHandle(*curr_task->args, curr_task->headers,&static_requests_counter, &dynamic_requests_counter);
+        //curr_task->handler(*curr_task->args, curr_task->headers, &static_requests_counter, &dynamic_requests_counter);
+        //printf("finish handleing %d\n", (int)pthread_self());
         Close(*(curr_task->args));
         pthread_mutex_lock(&threadPool->mutex);
         threadPool->handled_tasks_num--;
@@ -54,7 +59,11 @@ void* thread_routine(void* args) {
 void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
     pthread_mutex_lock(&threadPool->mutex);
     if(ThreadIsFull(threadPool)){
-        if (schedAlg == DropHead) {
+        if(schedAlg == Block){
+            while (ThreadIsFull(threadPool))  //thread thread_pool is full
+                pthread_cond_wait(&threadPool->taskFinished, &threadPool->mutex);
+        }
+        else if (schedAlg == DropHead) {
             if (listSize((threadPool->waiting_tasks)) == LIST_EMPTY){
                 Close(*(task->args));
                 pthread_mutex_unlock(&threadPool->mutex);
@@ -99,7 +108,7 @@ ThreadPool ThreadPoolInit(int threads_number, int l_size) {
         ThreadArgs thread_args = malloc(sizeof(struct struct_thread_args));
         thread_args->thread_pool = threadPool;
         thread_args->thread_id = i;
-        pthread_create(&(threadPool->threads[i]), NULL, thread_routine, thread_args);
+        while(pthread_create(&(threadPool->threads[i]), NULL, thread_routine, thread_args));
     }
     return threadPool;
 }

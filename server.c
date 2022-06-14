@@ -48,9 +48,11 @@ int main(int argc, char *argv[])
         connfd = Accept(listenfd, (SA *) &clientaddr, (socklen_t *) &clientlen);
         int* handlerArgs = malloc(sizeof(int));
         *handlerArgs = connfd;
-        while (ThreadIsFull(threadPool) && schedAlg == Block) { //thread thread_pool is full
-            pthread_cond_wait(&threadPool->taskFinished, &threadPool->mutex);
-        }
+//        pthread_mutex_lock(&threadPool->mutex);
+//        while (ThreadIsFull(threadPool) && schedAlg == Block) { //thread thread_pool is full
+//            pthread_cond_wait(&threadPool->taskFinished, &threadPool->mutex);
+//        }
+        //pthread_mutex_unlock(&threadPool->mutex);
         Task to_add = TaskInit(requestHandle, handlerArgs);
         ThreadPoolAddTask(threadPool, to_add, schedAlg);
     }
