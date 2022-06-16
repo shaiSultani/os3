@@ -96,7 +96,6 @@ void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
             removeRand(threadPool->waiting_tasks);
         }
     }
-    gettimeofday(&task->headers.stat_req_arrival, NULL);
     addToList(threadPool->waiting_tasks, task);
     pthread_cond_signal(&threadPool->listNotEmpty);
     pthread_mutex_unlock(&threadPool->mutex);

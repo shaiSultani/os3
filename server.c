@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
 //        }
         //pthread_mutex_unlock(&threadPool->mutex);
         Task to_add = TaskInit(requestHandle, handlerArgs);
+        gettimeofday(&to_add->headers.stat_req_arrival, NULL);
         ThreadPoolAddTask(threadPool, to_add, schedAlg);
     }
 }
