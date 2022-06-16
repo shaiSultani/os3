@@ -46,15 +46,19 @@ Task removeHead(List list) {
 }
 
 void removeRand(List list) {
-    for (int i = 0; ceil(list->size / 10 * 3); i++) {
-        if (list->size == 0) return;
-        int j = 1;
-        int rand_task = rand() % list->size;
-        if (rand_task == 0 || rand_task == 1) {
+    //int n=list->size*3/10;
+    int n=ceil((double )(list->size / 10 * 3));
+    if(n == 0){
+        n = 1;
+    }
+    for (int i = 0; i<n; i++) {
+        int rand_task =  abs(rand() % list->size);
+        if (rand_task == 0) {
             Close(*list->head->next->task->args);
             removeHead(list);
         } else {
             list_node *current = list->head;
+            int j=0;
             while (j < rand_task) {
                 current = current->next;
                 j++;
@@ -71,6 +75,66 @@ void removeRand(List list) {
         }
     }
 }
+//list_node* removeNodeByIndex(List list, int index)
+//{
+//    int i=0;
+//    list_node *curr = list->head;
+//    while (i < index && curr != NULL)
+//    {
+//        curr = curr->next;
+//        i++;
+//    }
+//    if (i == index)
+//    {
+//        if (curr == list->head)
+//        {
+//            list->head = curr->next;
+//
+//            return curr;
+//        }
+//        if (curr == list->tail)
+//        {
+//            list->tail = curr->prev;
+//            return curr;
+//        }
+//        curr->prev->next = curr->next;
+//        curr->next->prev = curr->prev;
+//        return curr;
+//    }
+//    return NULL;
+//}
+//void removeRand(List list) {
+//    int   remove_nodes = list->size*3/10;
+//                        if(remove_nodes == 0){
+//                            remove_nodes = 1;
+//                        }
+//    while(remove_nodes != 0) {
+//       int j = 1;
+//        int rand_task = rand() % list->size;
+//       if (rand_task == 0 || rand_task == 1) {
+//            Close(*list->head->next->task->args);
+//            removeHead(list);
+//            list->size--;
+//            remove_nodes--;
+//        } else {
+//            list_node *current = list->head;
+//            while (j < rand_task) {
+//                current = current->next;
+//                j++;
+//            }
+//            Close(*current->task->args);
+//            if (current->next){
+//                current->prev->next = current->next;
+//                current->next->prev = current->prev;
+//            }
+//            else{
+//                current->prev->next = NULL;
+//            }
+//            list->size--;
+//            remove_nodes--;
+//        }
+//        }
+//}
 
 list_size listSize(List list) {
     if (list->size == 0) return LIST_EMPTY;

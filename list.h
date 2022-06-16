@@ -27,6 +27,7 @@ list_size addToList(List, Task);
 list_size listSize(List);
 Task removeHead(List list);
 void removeRand(List);
+    //list_node* removeNodeByIndex(List list, int index);
 int getCurrSize(List list);
 
 #endif //WEBSERVER_FILES_LIST_H

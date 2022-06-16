@@ -119,18 +119,23 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, Headers headers)
     // The CGI script has to finish writing out the header.
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
     sprintf(buf, "%sServer: OS-HW3 Web Server\r\n", buf);
-    insertHeaders(buf, headers);
-
+    //insertHeaders(buf, headers);
+    sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf, headers.stat_req_arrival.tv_sec, headers.stat_req_arrival.tv_usec);
+    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, headers.stat_req_dispatch.tv_sec, headers.stat_req_dispatch.tv_usec);
+    sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, headers.stat_thread_id);
+    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, headers.stat_thread_count);
+    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, headers.stat_thread_static);
+    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, headers.stat_thread_dynamic);
     Rio_writen(fd, buf, strlen(buf));
-
-    if (Fork() == 0) {
+    int pid = fork();
+    if (pid == 0) {
         /* Child process */
         Setenv("QUERY_STRING", cgiargs, 1);
         /* When the CGI process writes to stdout, it will instead go to the socket */
         Dup2(fd, STDOUT_FILENO);
         Execve(filename, emptylist, environ);
     }
-    Wait(NULL);
+    WaitPid(pid, NULL, 0);
 }
 
 

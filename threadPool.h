@@ -16,6 +16,8 @@ typedef struct struct_thread_pool {
     List waiting_tasks;
     int handled_tasks_num;
     pthread_mutex_t mutex;
+//    pthread_mutex_t size_lock;
+//    pthread_mutex_t mutex2;
     pthread_cond_t listNotEmpty;
     pthread_cond_t taskFinished;
 }* ThreadPool;

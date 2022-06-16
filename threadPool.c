@@ -13,7 +13,7 @@ void* thread_routine(void* args) {
     int threadID = thread_args->thread_id;
     int static_requests_counter = 0;
     int dynamic_requests_counter = 0;
-    int counter = 0;
+    int counter = 1;
     while(1) {
         pthread_mutex_lock(&threadPool->mutex);
         while(listSize(threadPool->waiting_tasks) == LIST_EMPTY) {
@@ -22,10 +22,21 @@ void* thread_routine(void* args) {
         Task curr_task = removeHead(threadPool->waiting_tasks);
         threadPool->handled_tasks_num++;
         pthread_mutex_unlock(&threadPool->mutex);
-        counter++;
         struct timeval arrival = curr_task->headers.stat_req_arrival;
         struct timeval diff;
-        gettimeofday(&diff, NULL);
+
+         gettimeofday(&diff, NULL);
+        timersub(&diff, &arrival, &curr_task->headers.stat_req_dispatch);
+        curr_task->headers.stat_thread_id = threadID;
+        curr_task->headers.stat_thread_count = counter++;
+
+
+
+//        gettimeofday(&diff, NULL);
+//
+//
+//
+//
 //        if(diff.tv_usec < arrival.tv_usec) {
 //            int nanoSec = (arrival.tv_usec - diff.tv_usec) / 1000000 + 1;
 //            arrival.tv_usec -= 1000000 * nanoSec;
@@ -36,18 +47,16 @@ void* thread_routine(void* args) {
 //            arrival.tv_usec += 1000000 * nanoSec;
 //            arrival.tv_sec -= nanoSec;
 //        }
-        timersub(&diff, &arrival, &curr_task->headers.stat_req_dispatch);
-        //diff.tv_sec = diff.tv_sec - arrival.tv_sec;
-        //diff.tv_usec = diff.tv_usec - arrival.tv_usec;
-        curr_task->headers.stat_thread_id = threadID;
-        //curr_task->headers.stat_req_dispatch = diff;
-        curr_task->headers.stat_thread_count = counter;
+//        diff.tv_sec = diff.tv_sec - arrival.tv_sec;
+//        diff.tv_usec = diff.tv_usec - arrival.tv_usec;
+//        curr_task->headers.stat_thread_id = threadID;
+//        curr_task->headers.stat_req_dispatch = diff;
+//        curr_task->headers.stat_thread_count = counter++;
+
+
         curr_task->headers.stat_thread_static = static_requests_counter;
         curr_task->headers.stat_thread_dynamic = dynamic_requests_counter;
-        //printf("now running thread %d\n", (int)pthread_self());
         requestHandle(*curr_task->args, curr_task->headers,&static_requests_counter, &dynamic_requests_counter);
-        //curr_task->handler(*curr_task->args, curr_task->headers, &static_requests_counter, &dynamic_requests_counter);
-        //printf("finish handleing %d\n", (int)pthread_self());
         Close(*(curr_task->args));
         pthread_mutex_lock(&threadPool->mutex);
         threadPool->handled_tasks_num--;
@@ -87,6 +96,7 @@ void ThreadPoolAddTask(ThreadPool threadPool, Task task, SchedAlg schedAlg){
             removeRand(threadPool->waiting_tasks);
         }
     }
+    gettimeofday(&task->headers.stat_req_arrival, NULL);
     addToList(threadPool->waiting_tasks, task);
     pthread_cond_signal(&threadPool->listNotEmpty);
     pthread_mutex_unlock(&threadPool->mutex);
